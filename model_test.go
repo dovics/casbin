@@ -573,3 +573,30 @@ func TestCommentModel(t *testing.T) {
 	testEnforce(t, e, "bob", "data2", "read", false)
 	testEnforce(t, e, "bob", "data2", "write", true)
 }
+
+func TestDomainMatchModel(t *testing.T) {
+	e, _ := NewEnforcer("examples/rbac_with_domain_pattern_model.conf", "examples/rbac_with_domain_pattern_policy.csv")
+	e.rm.(*defaultrolemanager.RoleManager).AddMatchingFunc("keyMatch2", util.KeyMatch2, true)
+
+	testDomainEnforce(t, e, "alice", "domain1", "data1", "read", true)
+	testDomainEnforce(t, e, "alice", "domain1", "data1", "write", true)
+	testDomainEnforce(t, e, "alice", "domain1", "data2", "read", false)
+	testDomainEnforce(t, e, "alice", "domain1", "data2", "write", false)
+	testDomainEnforce(t, e, "alice", "domain2", "data2", "read", true)
+	testDomainEnforce(t, e, "alice", "domain2", "data2", "write", true)
+	testDomainEnforce(t, e, "bob", "domain2", "data1", "read", false)
+	testDomainEnforce(t, e, "bob", "domain2", "data1", "write", false)
+	testDomainEnforce(t, e, "bob", "domain2", "data2", "read", true)
+	testDomainEnforce(t, e, "bob", "domain2", "data2", "write", true)
+}
+
+func TestAllMatchModel(t *testing.T) {
+	e, _ := NewEnforcer("examples/rbac_with_all_pattern_model.conf", "examples/rbac_with_all_pattern_policy.csv")
+	e.rm.(*defaultrolemanager.RoleManager).AddMatchingFunc("keyMatch2", util.KeyMatch2)
+	e.rm.(*defaultrolemanager.RoleManager).AddMatchingFunc("keyMatch2", util.KeyMatch2, true)
+
+	testDomainEnforce(t, e, "alice", "domain1", "/book/1", "read", true)
+	testDomainEnforce(t, e, "alice", "domain1", "/book/1", "write", false)
+	testDomainEnforce(t, e, "alice", "domain2", "/book/1", "read", false)
+	testDomainEnforce(t, e, "alice", "domain2", "/book/1", "write", true)
+}
